@@ -1,0 +1,14 @@
+# k8s/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-service-svc
+spec:
+  selector:
+    app: todo-service
+  ports:
+    # Port 80 is the service port, targeting the container port 3000
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP # Internal exposure only (Kind cluster doesn't expose outside easily)
