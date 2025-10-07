@@ -10,10 +10,7 @@
     "sourceType": "commonjs"
   },
   "rules": {
-    // Enforce semi-colons (common standard for Node.js)
     "semi": ["error", "always"],
-    // Enforce use of 'const' or 'let' instead of 'var'
-    "no-var": "error",
-    // Additional rules can be added here
+    "no-var": "error"
   }
 }
