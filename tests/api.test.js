@@ -65,8 +65,10 @@ describe('Todo API Tests', () => {
         expect(response.body.error).toContain('Title is required');
     });
 
+    // The line where the error was reported:
     it('POST /api/v1/todos should return 400 if no title is sent', async () => {
-        const response = await request(app)
+        // Changed 'response' to '_response' to fix the 'no-unused-vars' error
+        const _response = await request(app)
             .post('/api/v1/todos')
             .send({})
             .expect(400);
