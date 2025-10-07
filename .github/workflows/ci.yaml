@@ -1,0 +1,104 @@
+# .github/workflows/ci.yaml
+
+name: Node.js CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '20'
+  DOCKER_IMAGE_NAME: todo-service
+  GIT_SHA: ${{ github.sha }}
+
+jobs:
+  # ====================================================================
+  # 1. BUILD, TEST, & SCAN STAGE
+  # ====================================================================
+  build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # --- Build & Unit Tests ---
+      - name: Install dependencies (npm ci)
+        run: npm ci
+
+      - name: Run Unit Tests (npm test)
+        run: npm test
+
+      # --- Static Analysis (ESLint) ---
+      - name: Static Analysis (ESLint)
+        run: npm run lint  # Requires 'lint' script in package.json
+
+      # --- Dependency Scan (npm audit) ---
+      - name: Dependency Scan (npm audit --high)
+        # --audit-level=high fails the job if high or critical vulnerabilities are found
+        run: npm audit --audit-level=high
+
+      # ====================================================================
+      # 2. IMAGE BUILD & SCAN STAGE
+      # ====================================================================
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        # Pass the current GIT_SHA as a build argument
+        run: |
+          docker build \
+            --build-arg COMMIT_SHA=${{ env.GIT_SHA }} \
+            -t ${{ env.DOCKER_IMAGE_NAME }}:${{ env.GIT_SHA }} \
+            -t ${{ env.DOCKER_IMAGE_NAME }}:latest \
+            .
+        # NOTE: This assumes you update your Dockerfile to accept the COMMIT_SHA build-arg
+
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action/setup@v0
+        with:
+          version: 'latest'
+
+      - name: Image Vulnerability Scan (Trivy)
+        # Fail on High or Critical vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_IMAGE_NAME }}:${{ env.GIT_SHA }}
+          format: 'table'
+          exit-code: '1'
+          severity: 'HIGH,CRITICAL'
+
+  # ====================================================================
+  # 3. DEPLOY STAGE
+  # ====================================================================
+  deploy:
+    needs: build-and-scan # Only runs if previous stage succeeds
+    runs-on: ubuntu-latest
+    environment: acceptance # Environment for tracking in GitHub
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --- Setup local Kubernetes cluster (Minikube/Kind) ---
+      # In a real pipeline, this step would be setting up access to EKS.
+      - name: Set up Kind Cluster (Simulated Deploy Target)
+        uses: helm/kind-action@v1.9.0 # Use 'kind' for lightweight testing
+        if: always() # Run even if the job fails, to ensure setup is tried
+
+      # --- Deploy to K8s ---
+      - name: Deploy Kubernetes Manifests
+        # Assumes your K8s manifests are checked into the repo at './k8s/'
+        run: |
+          # A simple kubectl apply command simulating deployment
+          kubectl apply -f ./k8s/deployment.yaml
+          kubectl apply -f ./k8s/service.yaml
+          
+          # Optional: Wait for deployment to be ready (e.g., using a custom K8s script)
+          kubectl rollout status deployment/todo-service -w

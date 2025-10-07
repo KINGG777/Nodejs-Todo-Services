@@ -1,0 +1,29 @@
+{
+  "name": "nodejs-todo-service",
+  "version": "1.0.0",
+  "description": "A baseline Node.js REST API for todos.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "NODE_ENV=development node src/index.js",
+    "test": "jest --detectOpenHandles --forceExit",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/** tests/**"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^8.1.0",
+    "prom-client": "^15.1.0",
+    "uuid": "^8.3.2",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "eslint": "^8.57.0"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
