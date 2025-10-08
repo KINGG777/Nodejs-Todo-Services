@@ -6,7 +6,7 @@ metadata:
   labels:
     app: todo-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: todo-service
@@ -15,26 +15,50 @@ spec:
       labels:
         app: todo-service
     spec:
+      serviceAccountName: todo-service-sa # Link to the IRSA Service Account
       containers:
         - name: todo-app
-          # This uses the image tagged 'latest' during the CI/CD build stage
-          image: todo-service:latest
+          # --------------------------------------------------------------------------
+          # IMPORTANT: Update this image field AFTER ECR is created by Terraform
+          # and CI/CD pushes the image.
+          # --------------------------------------------------------------------------
+          image: "ACCOUNT-ID.dkr.ecr.REGION.amazonaws.com/todo-service:latest"
+          
           ports:
             - containerPort: 3000
-          # Liveness and readiness checks are standard for production deployments
+          
+          # --------------------------------------------------------------------------
+          # SECURITY HARDENING: Required by Section C
+          # - runAsNonRoot, readOnlyRootFilesystem, Drop ALL capabilities
+          # --------------------------------------------------------------------------
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000 # Use a common non-root user ID
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+                - NET_RAW
+
+          # Liveness and Readiness Probes
           livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
             httpGet:
               path: /healthz
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 3000
-            initialDelaySeconds: 10
-            periodSeconds: 10
+
           resources:
+            requests: # Required for EKS scheduling
+              memory: "64Mi"
+              cpu: "250m"
             limits:
               memory: "128Mi"
               cpu: "500m"
