@@ -110,7 +110,7 @@ NetworkPolicy restricts pod communication
 
 Architecture Diagram (ASCII)
 sql
-Copy code
+
          ┌─────────┐
          │  Users  │
          └────┬────┘
