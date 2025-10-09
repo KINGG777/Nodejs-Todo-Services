@@ -17,7 +17,7 @@ spec:
       serviceAccountName: todo-sa
       containers:
         - name: todo-service
-          image: ${DOCKER_IMAGE_NAME}:${GIT_SHA}  # CI will replace this
+          image: ${DOCKER_IMAGE_NAME}:${GIT_SHA}  
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
