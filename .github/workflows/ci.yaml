@@ -94,7 +94,9 @@ jobs:
         # This assumes you have deployment files in a 'k8s' directory
         run: |
           # Use the latest image tag for deployment
+          kubectl apply -f ./k8s/service-account.yaml
           kubectl apply -f ./k8s/deployment.yaml
           kubectl apply -f ./k8s/service.yaml
+          kubectl apply -f ./k8s/networkpolicy.yaml
           
           echo "Deployment initiated. Check K8s logs for final status."
