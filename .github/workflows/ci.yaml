@@ -31,7 +31,7 @@ jobs:
 
       # --- Build & Unit Tests ---
       - name: Install all dependencies (npm install)
-        run: npm install
+        run: npm ci
 
       - name: Run Unit Tests (npm test)
         run: npm test
