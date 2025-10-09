@@ -4,7 +4,7 @@ This repository contains a full-stack deployment of a Node.js Todo service on AW
 
 ---
 
-## 🗂 Repository Structure
+## Repository Structure
 
 Nodejs-Todo-Services/
 ├── src/ # Node.js service
@@ -40,7 +40,7 @@ Copy code
 
 ---
 
-## ⚡ Setup & Deployment Instructions
+## Setup & Deployment Instructions
 
 ### 1️⃣ Prerequisites
 
@@ -87,22 +87,35 @@ Ingress exposes service with NGINX controller
 
 NetworkPolicy restricts pod communication
 
-5️⃣ CI/CD with GitHub Actions
-.github/workflows/ci.yaml runs:
-
-npm install & tests
-
-Docker build & push to ECR
-
-📊 Architecture Diagram
-mermaid
+Architecture Diagram (ASCII)
+sql
 Copy code
-graph LR
-    A[User] -->|HTTP/HTTPS| B[NGINX Ingress Controller]
-    B --> C[Kubernetes Service: nodejs-todo]
-    C --> D[Pod running Node.js Todo Service]
-    D --> E[DynamoDB Table]
-🔒 Security Measures & Threat Model
+         ┌─────────┐
+         │  Users  │
+         └────┬────┘
+              │ HTTP/HTTPS
+              ▼
+ ┌───────────────────────────┐
+ │ NGINX Ingress Controller  │
+ └───────────┬───────────────┘
+             │
+             ▼
+ ┌───────────────────────────┐
+ │ Kubernetes Service        │
+ │ nodejs-todo               │
+ └───────────┬───────────────┘
+             │
+             ▼
+ ┌───────────────────────────┐
+ │ Pod running Node.js       │
+ │ Todo Service              │
+ └───────────┬───────────────┘
+             │
+             ▼
+ ┌───────────────────────────┐
+ │ DynamoDB Table            │
+ └───────────────────────────┘
+Security Measures & Threat Model
 IRSA (IAM Roles for Service Accounts): Pods have least-privilege access to DynamoDB
 
 Network Policies: Restrict traffic between pods & namespaces
@@ -121,7 +134,7 @@ Data exfiltration → mitigated by IRSA & least privilege roles
 
 Pod compromise → limited by Kubernetes RBAC & network isolation
 
-⚖️ Trade-offs & Future Improvements
+Trade-offs & Future Improvements
 Current Setup:
 
 t3.large nodes, 2 replicas
@@ -150,7 +163,7 @@ Multi-region DynamoDB for HA
 
 Automated Terraform plan approval in CI/CD
 
-✅ References
+References
 AWS EKS Documentation
 
 Kubernetes Official Docs
